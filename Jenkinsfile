@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK21'
-        maven 'Maven3'
-    }
-
     stages {
 
         stage('Checkout') {
@@ -14,19 +9,17 @@ pipeline {
             }
         }
 
+        stage('Verify Tools') {
+            steps {
+                sh '''
+                    java -version
+                    mvn -version
+                    git --version
+                '''
+            }
+        }
+
         stage('Build') {
-            steps {
-                sh 'mvn clean compile'
-            }
-        }
-
-        stage('Unit Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package') {
             steps {
                 sh 'mvn clean package'
             }
@@ -35,10 +28,12 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully.'
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            echo 'Build completed successfully.'
         }
+
         failure {
-            echo 'Pipeline failed.'
+            echo 'Build failed.'
         }
     }
 }
