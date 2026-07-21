@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.projectKey>loan-management-system</sonar.projectKey>
+		<sonar.projectName>Loan Management System</sonar.projectName>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -125,6 +127,11 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+                                <groupId>org.sonarsource.scanner.maven</groupId>
+                                <artifactId>sonar-maven-plugin</artifactId>
+                                <version>3.11.0.3922</version>
+                        </plugin>
 		</plugins>
 	</build>
 

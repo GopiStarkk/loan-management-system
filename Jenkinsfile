@@ -19,9 +19,33 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Unit Test') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean verify'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        mvn sonar:sonar
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
             }
         }
     }
@@ -29,11 +53,6 @@ pipeline {
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            echo 'Build completed successfully.'
-        }
-
-        failure {
-            echo 'Build failed.'
         }
     }
 }
