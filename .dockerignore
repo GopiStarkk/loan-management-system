@@ -1,0 +1,8 @@
+target/*.original
+.git
+.idea
+.vscode
+docs
+images
+devops
+README.md

@@ -55,4 +55,26 @@ pipeline {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
     }
+
+
+      stage('Docker Build') {
+          steps {
+        script {
+            docker.build("gopistark/loan-management-system:${BUILD_NUMBER}")
+        }
+    }
+}
+
+     stage('Docker Push') {
+         steps {
+        script {
+            docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                docker.image("dockerhub/loan-management-system:${BUILD_NUMBER}").push()
+                docker.image("dockerhub/loan-management-system:${BUILD_NUMBER}").push("latest")
+            }
+        }
+    }
+}
+
+
 }
