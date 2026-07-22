@@ -15,6 +15,9 @@ pipeline {
                     java -version
                     mvn -version
                     git --version
+                    docker --version
+                    kubectl version --client
+                    aws --version
                 '''
             }
         }
@@ -66,30 +69,43 @@ pipeline {
             }
         }
 
-    }
+        stage('Deploy to Amazon EKS') {
+            steps {
+                sh """
+                kubectl set image deployment/loan-management-app \
+                loan-management-app=gopistark/loan-management-system:${BUILD_NUMBER} \
+                -n loan-management
+                """
+            }
+        }
 
-       stage('Deploy to Amazon EKS') {
-    steps {
-        sh '''
-        kubectl set image deployment/loan-management-app \
-        loan-management-app=gopistark/loan-management-system:latest \
-        -n loan-management
-        '''
-    }
-}
+        stage('Verify Rollout') {
+            steps {
+                sh '''
+                kubectl rollout status deployment/loan-management-app \
+                -n loan-management
+                '''
+            }
+        }
 
-stage('Verify Rollout') {
-    steps {
-        sh '''
-        kubectl rollout status deployment/loan-management-app \
-        -n loan-management
-        '''
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                kubectl get pods -n loan-management
+                kubectl get svc -n loan-management
+                '''
+            }
+        }
     }
-}
 
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
