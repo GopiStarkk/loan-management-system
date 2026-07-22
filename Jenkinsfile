@@ -28,9 +28,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        mvn sonar:sonar
-                    '''
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
@@ -48,6 +46,26 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    docker.build("gopistark/loan-management-system:${BUILD_NUMBER}")
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                        docker.image("gopistark/loan-management-system:${BUILD_NUMBER}").push()
+                        docker.image("gopistark/loan-management-system:${BUILD_NUMBER}").push("latest")
+                    }
+                }
+            }
+        }
+
     }
 
     post {
@@ -55,26 +73,4 @@ pipeline {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
     }
-
-
-      stage('Docker Build') {
-          steps {
-        script {
-            docker.build("gopistark/loan-management-system:${BUILD_NUMBER}")
-        }
-    }
-}
-
-     stage('Docker Push') {
-         steps {
-        script {
-            docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                docker.image("dockerhub/loan-management-system:${BUILD_NUMBER}").push()
-                docker.image("dockerhub/loan-management-system:${BUILD_NUMBER}").push("latest")
-            }
-        }
-    }
-}
-
-
 }
