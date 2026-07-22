@@ -68,6 +68,25 @@ pipeline {
 
     }
 
+       stage('Deploy to Amazon EKS') {
+    steps {
+        sh '''
+        kubectl set image deployment/loan-management-app \
+        loan-management-app=gopistark/loan-management-system:latest \
+        -n loan-management
+        '''
+    }
+}
+
+stage('Verify Rollout') {
+    steps {
+        sh '''
+        kubectl rollout status deployment/loan-management-app \
+        -n loan-management
+        '''
+    }
+}
+
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
